@@ -1,0 +1,14 @@
+name: PP-LGCMM_sensitivity
+title: PP-LGCMM_sensitivity
+username:
+account: xiaol
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7252937
+bundleId: 6383578
+url: https://xiaol.shinyapps.io/PP-LGCMM_sensitivity/
+when: 1665277466.06671
+lastSyncTime: 1665277466.06673
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 127.0.0.1.pdf|LGCMdataN200T3.csv|naive_4196068d6b5d61e1e1428763eb9f2a68.dat|naive_5d5c975734da96c94ae51f89b1338d41.dat|naive_8fd4c94f3a825f191c80e12308ab8240.dat|naive_acb9b09889a2c806a9e26c2e418cb2f4.dat|naive_ecda269d32af88ddbc5bb10bc8e48ece.dat|naive_ee30b6f9bfd64c97eee83259a3026dde.dat|naive.inp|naive.out|sensiFuns_fixChybridC.R
