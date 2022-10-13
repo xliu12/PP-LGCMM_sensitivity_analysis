@@ -464,27 +464,6 @@ fun.hybridmuC_sr <- function(datpreplist, Mean_C=c(0.39, 0.39, -0.39, -0.39),
       gather(key = "paramName","est")
     
     # # mcci ----
-    # nbootfixC_a_b = rmvnorm(nboot, mean = fixC_E.a_b, sigma = fixC_V.a_b)
-    # colnames(nbootfixC_a_b)=colnames(fixC_V.a_b)
-    # 
-    # nbootfixC_params = as_tibble(nbootfixC_a_b) %>% 
-    #   mutate( fixC_X_IM_IY = fixC_IM.ON_X * fixC_IY.ON_IM ) %>% 
-    #   mutate( fixC_X_SM_IY = fixC_SM.ON_X * fixC_IY.ON_SM ) %>%
-    #   mutate(fixC_X_IM_SY = fixC_IM.ON_X * fixC_SY.ON_IM ) %>%
-    #   mutate(fixC_X_SM_SY = fixC_SM.ON_X * fixC_SY.ON_SM ) %>%
-    #   # total
-    #   mutate(fixC_X_TO_IY = fixC_X_IM_IY + fixC_X_SM_IY) %>%
-    #   mutate(fixC_X_TO_SY = fixC_X_IM_SY + fixC_X_SM_SY) 
-    # fixC_CIlo = nbootfixC_params %>%
-    #   summarise_all( quantile, alph/2 ) %>% gather(key = "paramName","mcci.lo")
-    # fixC_CIup = nbootfixC_params %>%
-    #   summarise_all( quantile, 1-alph/2 ) %>% gather(key = "paramName","mcci.up")
-    # 
-    # fixC_MCCI = full_join(fixC_CIlo, fixC_CIup, by='paramName') %>%
-    #   mutate(mcci.ifsig = (mcci.lo*mcci.up)>0 )
-    ## ------------------------
-    # the modified hybrid approach does not obtain test result for each of the K sets of sensi param; rather, it use the K sets of random samples from the adjusted sampling distribution for inference (e.g., 95% CI)
-    ##3[ii]draw a random sample from the adjusted sampling distribution
     nboot=1
     onebootfixC_a_b = rmvnorm(nboot, mean = fixC_E.a_b, sigma = fixC_V.a_b)
     colnames(onebootfixC_a_b)=colnames(fixC_V.a_b)
@@ -544,7 +523,7 @@ fun.hybridmuC_sr <- function(datpreplist, Mean_C=c(0.39, 0.39, -0.39, -0.39),
 
 fun.hybridrC_sr <- function(
   datpreplist, 
-  K=1000,
+  K=1000,Z2names=NULL,
   Min_rC=c(0.3,0.3,0.3,0.3),
   Max_rC=c(0.5,0.5,0.5,0.5)
   , nboot=1, seed=12
@@ -570,12 +549,23 @@ fun.hybridrC_sr <- function(
     ifrangelim = (det(Rlatent)>0)
     
     # transform to muC ----
-    # COVlatent
     COVlatent=diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))%*%Rlatent%*%diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))
     colnames(COVlatent)=c('C',colnames(Rc))
     rownames(COVlatent)=colnames(COVlatent)
-    OLSb=solve(COVlatent[c('C','IM','SM','X','Z'),c('C','IM','SM','X','Z')])%*%COVlatent[c('C','IM','SM','X','Z'),c('IY','SY')]
+    # OLSb=solve(COVlatent[c('C','IM','SM','X','Z'),c('C','IM','SM','X','Z')])%*%COVlatent[c('C','IM','SM','X','Z'),c('IY','SY')]
+    # OLSxcols = which(!colnames(COVlatent)%in%c('IY','SY'))
+    OLSxcols = which(!colnames(COVlatent)%in%c('IY','SY', Z2names)) # Z2 are covariates in the models of ISM only 
+    OLSb=solve(COVlatent[OLSxcols,OLSxcols])%*%COVlatent[OLSxcols,c('IY','SY')]
+    # COVlatent[c('IY','SY'),c('IY','SY')] - COVlatent[c('IY','SY'),OLSxcols]%*%solve(COVlatent[OLSxcols,OLSxcols])%*%COVlatent[OLSxcols,c('IY','SY')]
     mubC=OLSb[1,]
+    names(mubC)=c("mubC.Iy", "mubC.Sy")
+   
+    #  # COVlatent
+    # COVlatent=diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))%*%Rlatent%*%diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))
+    # colnames(COVlatent)=c('C',colnames(Rc))
+    # rownames(COVlatent)=colnames(COVlatent)
+    # OLSb=solve(COVlatent[c('C','IM','SM','X','Z'),c('C','IM','SM','X','Z')])%*%COVlatent[c('C','IM','SM','X','Z'),c('IY','SY')]
+    # mubC=OLSb[1,]
     
     muaC = rCISm*sd_ISM
     mubC_IY=mubC[1]
@@ -681,80 +671,28 @@ fun.hybridrC_sr <- function(
 
 fun.summhybridC<-function(hybridreslist){
   list2env(hybridreslist, envir = environment())
-  # (Step.4) obtain summary statistics ----
-  #(e.g., mean and quantiles) from the distribution (i.e., the K sets) of indirect effect estimates (and the distribution of the SEs, z statistics, p-values) obtained in Step 3. 
-  #We may also plot the obtained distributions 
-  #and/or compute the proportion of significant results.
-  
-  # # for paths a,b ----
-  # ab.hybriddist = NULL
-  # for(i in 1:length(hybridres)){
-  #   ab.hybriddist = rbind(ab.hybriddist,hybridres[[i]]$a_b)
-  # }
-  # 
-  # abrange = as_tibble(ab.hybriddist) %>%
-  #   group_by( paramName ) %>%
-  #   summarise( withinrange = mean(ifrangelim) )
-  # 
-  # absumm = filter(ab.hybriddist, ifrangelim) %>%
-  #   group_by( paramName ) %>%
-  #   mutate( pval = 2*pnorm(abs(est/se),lower.tail = F) ) %>%
-  #   summarise( 
-  #     sig_percent = mean((pval < alph))
-  #     , average = mean(est)
-  #     , quartile1 = quantile(est, 0.25), median = median(est), quartile3 = quantile(est, 0.75)
-  #   ) %>%
-  #   full_join(abrange, ., by='paramName') %>%
-  #   mutate(param = gsub('fixC_','',paramName)) 
-  # 
-  # 
-  # absensi = as_tibble(sample_naive.Parameters)  %>%
-  #   unite("paramName",paramHeader,param) %>%
-  #   filter(paramName %in% c("IM.ON_X","SM.ON_X","IY.ON_IM","IY.ON_SM","SY.ON_IM","SY.ON_SM")) %>%
-  #   rename( param=paramName ) %>%
-  #   full_join(., absumm, by='param')
-  
-  
-  # # for med ----
-  # med.hybriddist = NULL
-  # for(i in 1:length(hybridres)){
-  #   med.hybriddist = rbind(med.hybriddist,hybridres[[i]]$med)
-  # }
-  # 
-  # medrange = as_tibble(med.hybriddist) %>%
-  #   group_by( paramName ) %>%
-  #   summarise( withinrange = mean(ifrangelim) )
-  # 
-  # medsumm = filter(med.hybriddist, ifrangelim) %>%
-  #   group_by( paramName ) %>%
-  #   summarise( 
-  #     sig_percent = mean(mcci.ifsig)
-  #     , average = mean(est)
-  #     , quartile1 = quantile(est, 0.25), median = median(est), quartile3 = quantile(est, 0.75)
-  #   ) %>%
-  #   full_join(medrange, ., by='paramName') %>%
-  #   mutate(param = gsub('fixC_','',paramName)) 
-  # 
-  # 
-  # medsensi = as_tibble(sample_naive.Parameters) %>%
-  #   filter(paramHeader %in% c("New.Additional.Parameters")) %>%
-  #   filter( str_detect(param, 'X_')) %>% select(-paramHeader) %>%
-  #   # select( param, est, se, est_se, pval ) %>%
-  #   full_join(., medsumm, by='param')
-  # # medsensi
-  
-  # abmedsensi = bind_rows(absensi, medsensi)[ ,!colnames(absensi)%in%c('paramName','est_se')]
-  # colnames(abmedsensi)[2:4]=paste0('M0.',colnames(abmedsensi)[2:4] )
-  # colnames(abmedsensi)[5]='M1.admissble_percent'
-  # colnames(abmedsensi)[6:10]=paste0('M1.',colnames(abmedsensi)[6:10] )
   
   prop_rangelim =mean(mhybrid_res$ifrangelim)
   mhybrid_res1=mhybrid_res[ mhybrid_res$ifrangelim==1, 1:12] %>% 
     pivot_longer(1:12, names_to = 'param') %>% 
     mutate( param=str_replace(param,'fixC_','') )
   
-  abmedsensi = mhybrid_res1 %>% group_by(param) %>%
+  abmedsensi_raw = mhybrid_res1 %>% group_by(param) %>%
     summarise_all( list(mean= ~mean(.), sd=~sd(.), ci.lo=~quantile(. ,0.025), ci.up=~quantile(. ,0.975)) )
+  
+  abmedsensi = abmedsensi_raw[c(1,4,2,5,3,6,7:10) , ]
+  
+  abmednaive_raw = sample_naive.Parameters[
+    c((sample_naive.Parameters$paramHeader=="IM.ON"&sample_naive.Parameters$param=='X') |(sample_naive.Parameters$paramHeader=="SM.ON"&sample_naive.Parameters$param=='X') |
+        (sample_naive.Parameters$paramHeader=="IY.ON"&sample_naive.Parameters$param=='IM') | (sample_naive.Parameters$paramHeader=="IY.ON"&sample_naive.Parameters$param=='SM') | 
+        (sample_naive.Parameters$paramHeader=="SY.ON"&sample_naive.Parameters$param=='IM') | (sample_naive.Parameters$paramHeader=="SY.ON"&sample_naive.Parameters$param=='SM') |
+        (sample_naive.Parameters$paramHeader=="New.Additional.Parameters")&(sample_naive.Parameters$param%in%c('X_IM_IY','X_SM_IY','X_IM_SY','X_SM_SY')) ) , ]
+  
+  abmednaive = abmednaive_raw[ c(5,6,1,3,2,4,7,9,8,10) ,-1 ]
+  abmednaive$param[1:6] = abmedsensi$param[1:6]
+  MCSAout = cbind(abmednaive, abmedsensi[,-1], prop_rangelim)
+  colnames(MCSAout)=c("param", paste0("ML_Original_",colnames(abmednaive[,-1]) ), paste0("MCSA_",colnames(abmedsensi[,-1]) ), "Proportion_of_draws_within_admissible_ranges" )
+  
   
   out=mget(ls(), envir = environment())
   return(out)

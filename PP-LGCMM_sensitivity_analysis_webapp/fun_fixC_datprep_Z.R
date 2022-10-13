@@ -8,12 +8,14 @@ library(MplusAutomation)
 
 # 
 try <- function(){
-  datN200T5=read.csv('LGCMdata.csv',header = T)
+  datN200T5=read.csv('~/Library/CloudStorage/Box-Box/Labs/SensitivityAnalysis/BSAgcm/Rfunction/LGCMdata.csv',header = T)
   dat = datN200T5  # data frame containing variables in the LGCM model 
   Ycols = c(1:5)  # columns for repeated measures of outcome from the first to the last time points 
   SY.loadings = c(-4,-3,-2,-1,0)  # loadings of the outcome slope
   Mcols = c(6:10)  # columns for repeated measures of mediator from the first to the last time points
-  SM.loadings = c(0,1,2,3,4) # loadings of the mediator slope
+  SM.loadings = c(0,1,2,3,4) # loadings of the mediator slope,
+  within_person_residual_cov = ("eM1-eM5 (sigma_eM);
+ eY1-eY5 (sigma_eY);")
   Xcol = 11 # column for the independent variable 
   Z1cols = c(12) # columns for the level-2 covariates in both the level-2 models of mediator and outcome  
   Z2cols = NULL # columns for the level-2 covariates in the level-2 model of mediator only
@@ -31,6 +33,8 @@ fun.fixC.datprep_Z <- function(
   Z1cols = c(12), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
   Z2cols = NULL, # columns for the level-2 covariates in the level-2 model of mediator only
   Z3cols = NULL, # columns for the level-2 covariates in the level-2 model of outcome only
+  within_person_residual_cov = ("eM1-eM5 (sigma_eM);
+ eY1-eY5 (sigma_eY);"),
   alph=0.05 # alpha level per effect
 )
 {
@@ -60,9 +64,12 @@ fun.fixC.datprep_Z <- function(
     paste0("eY",1:YTT," by Y",1:YTT,"@1;\n", collapse = ""),
     "M1-M",MTT,"@0;\n",
     "Y1-Y",YTT,"@0;\n",
-    "! constrained within-person residual;\n",
-    "eM1-eM",MTT," (sigma_eM);\n",
-    "eY1-eY",YTT," (sigma_eY);\n",
+    # "! constrained within-person residual;\n",
+    # "eM1-eM",MTT," (sigma_eM);\n",
+    # "eY1-eY",YTT," (sigma_eY);\n",
+    "!user-specified within-person residual covariance structure;\n",
+    within_person_residual_cov,
+    "\n",
     
     # level-2 model
     "[IM SM] (a0_IM a0_SM);\n",

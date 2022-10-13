@@ -1,6 +1,6 @@
 Mplus VERSION 8.8 (Mac)
 MUTHEN & MUTHEN
-10/11/2022   7:54 AM
+10/12/2022   8:15 PM
 
 INPUT INSTRUCTIONS
 
@@ -54,9 +54,8 @@ INPUT INSTRUCTIONS
   eY5 by Y5@1;
   M1-M5@0;
   Y1-Y5@0;
-  ! constrained within-person residual;
-  eM1-eM5 (sigma_eM);
-  eY1-eY5 (sigma_eY);
+  !user-specified within-person residual covariance structure;
+  eM1-eM5 (sigma_eM); eY1-eY5 (sigma_eY);
   [IM SM] (a0_IM a0_SM);
   [IY SY] (b0_IY b0_SY);
   IM on X (a1_IM);
@@ -1922,8 +1921,8 @@ TECHNICAL 4 OUTPUT
  Z              0.000
 
 
-     Beginning Time:  07:54:36
-        Ending Time:  07:54:36
+     Beginning Time:  20:15:36
+        Ending Time:  20:15:36
        Elapsed Time:  00:00:00
 
 

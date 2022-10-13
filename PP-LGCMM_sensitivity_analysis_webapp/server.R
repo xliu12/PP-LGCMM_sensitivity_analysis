@@ -23,11 +23,67 @@ source('sourcefun_fixC_sr_Z.R')
 source('sourcefun_plot_fixC_sr_Z.R')
 # source('sensiFuns_fixChybridC.R')
 source('sensiFuns_fixC_MCSA.R')
+source('fun_BayesSensiC_Z.R')
+source('fun_rC_aCbC.R')
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
-    
-    # hybridC ----
+  
+    # transformation between rC (zero-order confounder correlations) and aCbC (confounder path coeffs), and check if they are within admissible ranges
+   rC_aCbC_tab <- eventReactive(input$update,{
+     if(!input$rC2aCbC){
+       rC2aCbC_tab <-NULL
+     }
+     if(input$rC2aCbC){
+       datprep_list = fun.fixC.datprep_Z( 
+         dat = read.csv(input$datcsv$datapath, header = T),
+         Ycols = as.numeric(unlist(strsplit(input$Ycolumns,","))), # columns for repeated measures of outcome from the first to the last time points
+         SY.loadings =  as.numeric(unlist(strsplit(input$Yslope_loadings,","))) , # loadings of the outcome slope
+         Mcols = as.numeric(unlist(strsplit(input$Mcolumns,","))), # columns for repeated measures of mediator from the first to the last time points
+         SM.loadings =  as.numeric(unlist(strsplit(input$Mslope_loadings,","))), # loadings of the mediator slope
+         Xcol = as.numeric(unlist(strsplit(input$Xcolumn,","))), # column for the independent variable
+         Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
+         Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
+         Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
+         within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
+       )
+       rC2aCbC_tab = rC.to.aCbC( datpreplist = datprep_list , rC_ImSmIySy = as.numeric(unlist(strsplit(input$rC_ImSmIySy,",")))  )
+     }
+     
+     data.frame(t(rC2aCbC_tab))
+   })
+  
+   output$rC_aCbC_tab <- renderTable({
+     rC_aCbC_tab()
+   })
+   
+   aCbC_rC_tab <- eventReactive(input$update,{
+     if(!input$aCbC2rC){
+       aCbC_rCtab <-NULL
+     }
+     if(input$aCbC2rC){
+       datprep_list = fun.fixC.datprep_Z( 
+         dat = read.csv(input$datcsv$datapath, header = T),
+         Ycols = as.numeric(unlist(strsplit(input$Ycolumns,","))), # columns for repeated measures of outcome from the first to the last time points
+         SY.loadings =  as.numeric(unlist(strsplit(input$Yslope_loadings,","))) , # loadings of the outcome slope
+         Mcols = as.numeric(unlist(strsplit(input$Mcolumns,","))), # columns for repeated measures of mediator from the first to the last time points
+         SM.loadings =  as.numeric(unlist(strsplit(input$Mslope_loadings,","))), # loadings of the mediator slope
+         Xcol = as.numeric(unlist(strsplit(input$Xcolumn,","))), # column for the independent variable
+         Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
+         Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
+         Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
+         within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
+       )
+       aCbC_rCtab = aCbC.to.rC( datpreplist = datprep_list, aCbC = as.numeric(unlist(strsplit(input$aCbC,","))) )
+     }
+     
+     data.frame( t(aCbC_rCtab)  )
+     
+   })
+   
+   output$aCbC_rC_tab <- renderTable({ aCbC_rC_tab() })
+   
+    # MCSA ----
     hybridCsensitab <- eventReactive(input$update, {
         if(!input$hybridC){
             hybridC_sensitab=NULL
@@ -54,7 +110,7 @@ shinyServer(function(input, output) {
                 Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
                 Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
                 Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
-                alph=input$alpha # alpha level per effect
+                within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
             )
             
             if( input$hybrid_whichC== 'rC'){
@@ -65,7 +121,7 @@ shinyServer(function(input, output) {
                                                  ,Max_rC= as.numeric(unlist(strsplit(input$MaxsrC,","))) #c(0.5,0.5,0.5,0.5)
                 )
                 hybridrC_summ=fun.summhybridC( hybridreslist = hybridrC_reslist )
-                hybridC_sensitab = hybridrC_summ$abmedsensi
+                hybridC_sensitab = hybridrC_summ$MCSAout
             }
             if( input$hybrid_whichC=='muC'){
                 #hybrid.muC
@@ -75,7 +131,7 @@ shinyServer(function(input, output) {
                                                    ,K=input$hybridnumK
                 )
                 hybridmuC_summ=fun.summhybridC( hybridreslist = hybridmuC_reslist )
-                hybridC_sensitab = hybridmuC_summ$abmedsensi
+                hybridC_sensitab = hybridmuC_summ$MCSAout
             }
         }
         
@@ -87,7 +143,46 @@ shinyServer(function(input, output) {
     })
     
     
-    # fixC ----
+    # BSA ----
+    
+    BayesCsensitab <- eventReactive(input$update, {
+      if(!input$BayesC){
+        BayesC_sensitab=NULL
+      }
+      if(input$BayesC){
+        dat=read.csv(input$datcsv$datapath, header = T)
+        
+        BayesC_reslist = fun.BayesC_Z(
+          dat = read.csv(input$datcsv$datapath, header = T),
+          Ycols = as.numeric(unlist(strsplit(input$Ycolumns,","))), # columns for repeated measures of outcome from the first to the last time points
+          SY.loadings =  as.numeric(unlist(strsplit(input$Yslope_loadings,","))) , # loadings of the outcome slope
+          Mcols = as.numeric(unlist(strsplit(input$Mcolumns,","))), # columns for repeated measures of mediator from the first to the last time points
+          SM.loadings =  as.numeric(unlist(strsplit(input$Mslope_loadings,","))), # loadings of the mediator slope
+          Xcol = as.numeric(unlist(strsplit(input$Xcolumn,","))), # column for the independent variable
+          Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
+          Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
+          Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
+          within_person_residual_cov = input$within_person_residual_cov,
+          
+          priors_muC=input$priors_muC,
+          BITERATIONS=input$BITERATIONS,THIN=input$THIN,CHAINS=input$CHAINS,
+          
+          non_default_priors_original = input$non_default_priors_original,
+          Bayes_originalmodel= input$priors_originalmodel,
+          priors_originalmodel=input$priors_originalmodel
+        
+        )
+        BayesC_sensitab = BayesC_reslist$BSAout
+      } 
+      BayesC_sensitab
+      
+      } )
+    
+    output$BayesCsensi <- renderTable({
+      BayesCsensitab()
+    })
+    
+    # FSA ----
     ## IyonIm
     sensiplots_IyonIm <- eventReactive(input$update,{ 
         if(input$fixC){
@@ -114,7 +209,8 @@ shinyServer(function(input, output) {
                 Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
                 Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
                 Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
-                alph=input$alpha # alpha level per effect
+                within_person_residual_cov = input$within_person_residual_cov,
+                within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
             )
             
             out_sensifixC_JS_Z=fun.sensifixC_JS_Z( datpreplist = datprep_list,
@@ -160,7 +256,7 @@ shinyServer(function(input, output) {
                 Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
                 Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
                 Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
-                alph=input$alpha # alpha level per effect
+                within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
             )
             out_sensifixC_JS_Z=fun.sensifixC_JS_Z( datpreplist = datprep_list,
                                                    rCvalues= as.numeric(unlist(strsplit(input$rCvalues,",")))
@@ -204,7 +300,7 @@ shinyServer(function(input, output) {
                 Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
                 Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
                 Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
-                alph=input$alpha # alpha level per effect
+                within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
             )
             out_sensifixC_JS_Z=fun.sensifixC_JS_Z( datpreplist = datprep_list,
                                                    rCvalues= as.numeric(unlist(strsplit(input$rCvalues,",")))
@@ -249,7 +345,7 @@ shinyServer(function(input, output) {
                 Z1cols = as.numeric(unlist(strsplit(input$covariates.MYboth,","))), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
                 Z2cols = as.numeric(unlist(strsplit(input$covariates.Monly,","))), # columns for the level-2 covariates in the level-2 model of mediator only
                 Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
-                alph=input$alpha # alpha level per effect
+                within_person_residual_cov = input$within_person_residual_cov,                 alph=input$alpha  # alpha level per effect
             )
             out_sensifixC_JS_Z=fun.sensifixC_JS_Z( datpreplist = datprep_list,
                                                    rCvalues= as.numeric(unlist(strsplit(input$rCvalues,",")))
