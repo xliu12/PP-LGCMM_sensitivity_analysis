@@ -33,8 +33,8 @@ fun.fixC.datprep_Z <- function(
   Z1cols = c(12), # columns for the level-2 covariates in both the level-2 models of mediator and outcome
   Z2cols = NULL, # columns for the level-2 covariates in the level-2 model of mediator only
   Z3cols = NULL, # columns for the level-2 covariates in the level-2 model of outcome only
-  within_person_residual_cov = ("eM1-eM5 (sigma_eM);
- eY1-eY5 (sigma_eY);"),
+  within_person_residual_cov = "eM1-eM5 (sigma_eM);
+ eY1-eY5 (sigma_eY);",
   alph=0.05 # alpha level per effect
 )
 {
@@ -43,10 +43,21 @@ fun.fixC.datprep_Z <- function(
   colnames(dat)[Ycols] = paste0('Y', 1:length(Ycols) )
   colnames(dat)[Mcols] = paste0('M', 1:length(Mcols) )
   colnames(dat)[Xcol] = 'X'
-  Z1names=colnames(dat)[Z1cols]
-  Z2names=colnames(dat)[Z2cols]
-  Z3names=colnames(dat)[Z3cols]
   
+  # if(!is.null(Z1cols)) {if( is.na(Z1cols) ) { Z1cols=NULL} }
+  # if(!is.null(Z2cols)) {if(is.na(Z2cols)) { Z2cols=NULL}}; if(!is.null(Z3cols)) {if(is.na(Z3cols)) { Z3cols=NULL}};
+  
+  Z1names=colnames(dat)[Z1cols]
+  if( sum(is.na(Z1names))>0 ){Z1names = NULL
+  Z1cols=NULL }
+  Z2names=colnames(dat)[Z2cols]
+  if( sum(is.na(Z2names))>0 ){Z2names = NULL
+  Z2cols=NULL }
+  Z3names=colnames(dat)[Z3cols]
+  if( sum(is.na(Z3names))>0 ){Z3names = NULL
+  Z3cols=NULL}
+  
+  dat_used = data.frame( dat[ , c(colnames(dat)[c(Ycols, Mcols, Xcol)], Z1names, Z2names, Z3names) ] )
   # original model M0 mplusOut ----
   # original model M0 code
   mpluscodeModel_M0= paste0(
@@ -91,20 +102,20 @@ fun.fixC.datprep_Z <- function(
   )
   ## mplus level-2 model including Z
   mpluscodeModel_M0_Z=mpluscodeModel_M0
-  if( !is.null(Z1cols) ){
+  if( length(Z1names) >=1 ){
     mpluscodeModel_M0_Z = paste0(mpluscodeModel_M0, 
                                  paste0('IM SM on ', Z1names, ";\n"),
                                  paste0('IY SY on ', Z1names, ";\n"),
                                  collapse = ""
                                  )
   }
-  if( !is.null(Z2cols) ){
+  if( length(Z2names)>=1 ){
     mpluscodeModel_M0_Z = paste0(mpluscodeModel_M0_Z, 
                                     paste0('IM SM on ', Z2names, ";\n"),
                                  collapse = ""
     )
   }
-  if( !is.null(Z3cols) ){
+  if( length(Z3names)>=1 ){
     mpluscodeIYSYonZ3 = paste0('IY SY on ', Z3names, ";\n")
     mpluscodeModel_M0_Z = paste0(mpluscodeModel_M0_Z, 
                                  paste0('IY SY on ', Z3names, ";\n"),
@@ -143,8 +154,8 @@ fun.fixC.datprep_Z <- function(
     
     OUTPUT = "TECH1 TECH3 TECH4;\n",
     
-    usevariables = colnames(dat), autov = F,
-    rdata = dat
+    usevariables = colnames(dat_used), autov = F,
+    rdata = dat_used
   )
   
   
@@ -152,7 +163,7 @@ fun.fixC.datprep_Z <- function(
                           writeData = "ifmissing" ,modelout = "naive.inp")
   
   
-  if ( length(mplusOut$results$errors)+length(mplusOut$results$warnings) == 0 ) {
+  if ( length(mplusOut$results$errors)  == 0 ) {
     sample_naive.Parameters = readModels("naive.out",what = c("parameters")
                                          ,quiet = T)$parameters$unstandardized
     
@@ -240,7 +251,8 @@ fun.fixC.datprep_Z <- function(
   if ( length(mplusOut$results$errors)+length(mplusOut$results$warnings) != 0 ){
     print(mplusOut$results$errors)
     print(mplusOut$results$warnings)
-    datpreplist='original model M0 returns errors and/or warnings.'
+    mplusModelM0errorwarns=paste('original model M0 returns errors and/or warnings.',
+                                 mplusOut$results$errors, mplusOut$results$warnings)
   }
   
  return(datpreplist)

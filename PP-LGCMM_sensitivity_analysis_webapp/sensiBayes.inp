@@ -11,11 +11,11 @@ ANALYSIS:
 MODEL = NOCOVARIANCES;
   ESTIMATOR = BAYES; 
   POINT = MEAN;
-THIN = 2;
+THIN = 5;
 CHAINS = 2;
 PROCESS = 2;
   ALGORITHM = GIBBS; 
-  BITERATIONS = 10000;
+  BITERATIONS = 2000;
 
 MODEL:
 IM by M1@1
@@ -54,7 +54,8 @@ eY5 by Y5@1;
 M1-M5@0;
 Y1-Y5@0;
 !user-specified within-person residual covariance structure;
-eM1-eM5; eY1-eY5 (sigma_eY);
+eM1-eM5 (sigma_eM);
+ eY1-eY5 (sigma_eY);
 [IM SM] (a0_IM a0_SM);
 [IY SY] (b0_IY b0_SY);
 IM on X (aIM_X);
@@ -68,18 +69,15 @@ IY (revarIY);
 SY (revarSY);
 IY with SY (IYwSY);
 IY SY with IM@0 SM@0;
-IM SM on Z;
 IY SY on Z;
-IM SM on ;
-IY SY on ;
 
 C by;
 [C@0];
 C@1;
-IM on C (aC_IM);
-SM on C (aC_SM);
-IY on C (bC_IY);
-SY on C (bC_SY);
+IM on C (aIM_C);
+SM on C (aSM_C);
+IY on C (bIY_C);
+SY on C (bSY_C);
 
 MODEL CONSTRAINT:
 NEW (X_IM_IY, X_SM_IY, X_IM_SY, X_SM_SY  );
@@ -89,7 +87,8 @@ X_IM_SY = aIM_X*bSY_IM;
 X_SM_SY = aSM_X*bSY_SM; 
 
 MODEL PRIORS:
-aC_IM ~ N(0.39, 0.15); aC_SM ~ N(0.39, 0.25);bC_IY ~ N(-0.39, 0.25); bC_SY ~ N(-0.39, 0.25); 
+aIM_C ~ N(0.39, 0.25); aSM_C ~ N(0.39, 0.25);
+bIY_C ~ N(-0.39, 0.25); bSY_C ~ N(-0.39, 0.25); 
 OUTPUT:
 TECH1 TECH3 TECH4 TECH8;
 

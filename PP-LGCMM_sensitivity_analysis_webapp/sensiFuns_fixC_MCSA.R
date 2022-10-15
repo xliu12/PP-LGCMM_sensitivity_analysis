@@ -32,10 +32,6 @@ fun.sensifixC_JS_Z <-function( datpreplist, rCvalues=c(0.2,0.2,0.2,0.2) ){ # rCv
     , rCX = c(0) # in the same order as Rc
     # , rCZ = c(0) # in the same order as Rc
   )
-  rCZ123=matrix(0, nrow = nrow(smallfixC_s.onSm.all_rC), ncol = (length(Z1cols)+length(Z2cols)+length(Z3cols)) )
-  colnames(rCZ123)=paste0('rC',c(Z1names,Z2names,Z3names))
-  smallfixC_s.onSm.all_rCZ=cbind(smallfixC_s.onSm.all_rC, rCZ123)
-  
   smallfixC_s.onIm.all_rC = expand.grid(
     rCIm = seq(-1,1,by=0.01) # x-axis 
     #c(0, 0.3, 0.5)
@@ -45,14 +41,6 @@ fun.sensifixC_JS_Z <-function( datpreplist, rCvalues=c(0.2,0.2,0.2,0.2) ){ # rCv
     , rCX = c(0) # in the same order as Rc
     # , rCZ = c(0) # in the same order as Rc
   )
-  smallfixC_s.onIm.all_rCZ=cbind(smallfixC_s.onIm.all_rC,rCZ123)
-  
-  smallfixC_s.onSm.SensiRes = fixC_s.SensiRes(
-    all_rC = smallfixC_s.onSm.all_rCZ, envlist = datpreplist )
-  
-  smallfixC_s.onIm.SensiRes = fixC_s.SensiRes(
-    all_rC = smallfixC_s.onIm.all_rCZ, envlist = datpreplist)
-
   # medium large
   medilargfixC_s.onSm.all_rC = expand.grid(
     rCIm = c(0.3, 0.5) # corr(C, Im) # subplot labels
@@ -62,7 +50,6 @@ fun.sensifixC_JS_Z <-function( datpreplist, rCvalues=c(0.2,0.2,0.2,0.2) ){ # rCv
     , rCX = c(0) # in the same order as Rc
     # , rCZ = c(0) # in the same order as Rc
   )
-  medilargfixC_s.onSm.all_rCZ=cbind(medilargfixC_s.onSm.all_rC, rCZ123)
   
   medilargfixC_s.onIm.all_rC = expand.grid(
     rCIm = seq(-1,1,by=0.01) # x-axis
@@ -73,7 +60,30 @@ fun.sensifixC_JS_Z <-function( datpreplist, rCvalues=c(0.2,0.2,0.2,0.2) ){ # rCv
     , rCX = c(0) # in the same order as Rc
     # , rCZ = c(0) # in the same order as Rc
   )
-  medilargfixC_s.onIm.all_rCZ=cbind(medilargfixC_s.onIm.all_rC, rCZ123)
+  
+  if ( (length(Z1cols)+length(Z2cols)+length(Z3cols))>=1 ){
+    rCZ123=matrix(0, nrow = nrow(smallfixC_s.onSm.all_rC), ncol = (length(Z1cols)+length(Z2cols)+length(Z3cols)) )
+    colnames(rCZ123)=paste0('rC',c(Z1names,Z2names,Z3names))
+    smallfixC_s.onSm.all_rCZ=cbind(smallfixC_s.onSm.all_rC, rCZ123)
+    smallfixC_s.onIm.all_rCZ=cbind(smallfixC_s.onIm.all_rC,rCZ123)
+    medilargfixC_s.onSm.all_rCZ=cbind(medilargfixC_s.onSm.all_rC, rCZ123)
+    medilargfixC_s.onIm.all_rCZ=cbind(medilargfixC_s.onIm.all_rC, rCZ123)
+    
+  }
+  if ( (length(Z1cols)+length(Z2cols)+length(Z3cols)) < 1 ){
+    smallfixC_s.onSm.all_rCZ=smallfixC_s.onSm.all_rC
+    smallfixC_s.onIm.all_rCZ=smallfixC_s.onIm.all_rC
+    medilargfixC_s.onSm.all_rCZ=medilargfixC_s.onSm.all_rC
+    medilargfixC_s.onIm.all_rCZ=medilargfixC_s.onIm.all_rC
+  }
+  
+
+  smallfixC_s.onSm.SensiRes = fixC_s.SensiRes(
+    all_rC = smallfixC_s.onSm.all_rCZ, envlist = datpreplist )
+  
+  smallfixC_s.onIm.SensiRes = fixC_s.SensiRes(
+    all_rC = smallfixC_s.onIm.all_rCZ, envlist = datpreplist)
+
   
   medilargfixC_s.onSm.SensiRes = fixC_s.SensiRes(
     all_rC = medilargfixC_s.onSm.all_rCZ, envlist = datpreplist)

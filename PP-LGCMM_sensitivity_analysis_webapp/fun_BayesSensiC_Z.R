@@ -96,9 +96,11 @@ revarIY ~ iw(1,3); revarSY ~ iw(1,3);IYwSY ~ iw(0,3);"
   colnames(dat)[Mcols] = paste0('M', 1:length(Mcols) )
   colnames(dat)[Xcol] = 'X'
   Z1names=colnames(dat)[Z1cols]
+  if( sum(is.na(Z1names))>0 ){Z1names = NULL}
   Z2names=colnames(dat)[Z2cols]
+  if( sum(is.na(Z2names))>0 ){Z2names = NULL}
   Z3names=colnames(dat)[Z3cols]
-  
+  if( sum(is.na(Z3names))>0 ){Z3names = NULL}
   # model objects for Model M0 and Model M1 using the Bayes estimator in Mplus ----
   
   ## if non-default prior for original model params
@@ -225,20 +227,20 @@ revarIY ~ iw(1,3); revarSY ~ iw(1,3);IYwSY ~ iw(0,3);"
     )
     ## mplus level-2 model including Z
     mpluscodeModel_M0_Z=mpluscodeModel_M0
-    if( !is.null(Z1cols) ){
+    if( length(Z1names) >=1 ){
       mpluscodeModel_M0_Z = paste0(mpluscodeModel_M0, 
                                    paste0('IM SM on ', Z1names, ";\n"),
                                    paste0('IY SY on ', Z1names, ";\n"),
                                    collapse = ""
       )
     }
-    if( !is.null(Z2cols) ){
+    if( length(Z2names)>=1 ){
       mpluscodeModel_M0_Z = paste0(mpluscodeModel_M0_Z, 
                                    paste0('IM SM on ', Z2names, ";\n"),
                                    collapse = ""
       )
     }
-    if( !is.null(Z3cols) ){
+    if( length(Z3names)>=1 ){
       mpluscodeIYSYonZ3 = paste0('IY SY on ', Z3names, ";\n")
       mpluscodeModel_M0_Z = paste0(mpluscodeModel_M0_Z, 
                                    paste0('IY SY on ', Z3names, ";\n"),

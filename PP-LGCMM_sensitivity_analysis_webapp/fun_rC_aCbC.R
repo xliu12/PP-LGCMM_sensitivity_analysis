@@ -6,38 +6,44 @@
 rC.to.aCbC <- function(datpreplist, 
                         rC_ImSmIySy=c(.1,.1,.1,.1) ){ # Z2 are covariates in the models of ISM only 
   list2env(datpreplist, envir = environment())
-  
-  rC = c(rC_ImSmIySy, 0, rep(0, length(Z1cols)+length(Z2cols)+length(Z3cols) ))
-  # Rlatent
-  Rlatent=diag(1, 1+nrow(Rc),1+ncol(Rc))
-  Rlatent[1, -1]=rC
-  Rlatent[-1,1]=rC
-  Rlatent[-1,-1]=Rc
-  colnames(Rlatent)=c('C',colnames(Rc))
-  rownames(Rlatent)=colnames(Rlatent)
-  # det(Rlatent)
-  ifrangelim = (det(Rlatent)>0)
-  
-  # COVlatent
-  COVlatent=diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))%*%Rlatent%*%diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))
-  colnames(COVlatent)=c('C',colnames(Rc))
-  rownames(COVlatent)=colnames(COVlatent)
-  # OLSb=solve(COVlatent[c('C','IM','SM','X','Z'),c('C','IM','SM','X','Z')])%*%COVlatent[c('C','IM','SM','X','Z'),c('IY','SY')]
-  # OLSxcols = which(!colnames(COVlatent)%in%c('IY','SY'))
-  OLSxcols = which(!colnames(COVlatent)%in%c('IY','SY', Z2names)) # Z2 are covariates in the models of ISM only 
-  OLSb=solve(COVlatent[OLSxcols,OLSxcols])%*%COVlatent[OLSxcols,c('IY','SY')]
-  # COVlatent[c('IY','SY'),c('IY','SY')] - COVlatent[c('IY','SY'),OLSxcols]%*%solve(COVlatent[OLSxcols,OLSxcols])%*%COVlatent[OLSxcols,c('IY','SY')]
-  mubC=OLSb[1,]
-  names(mubC)=c("bIY_C", "bSY_C")
-  
-  ## rCISm to aC
-  rCISm = rC_ImSmIySy[1:2]
-  muaC = rCISm*sd_ISM
-  
-  aCbC = c(muaC, mubC)
-  names(aCbC) = c("aIM_C",'aSM_C',"bIY_C", "bSY_C")
-  out=c(aCbC, ifrangelim)
-  names(out) = c("aIM_C",'aSM_C',"bIY_C", "bSY_C","if_within_admissible_ranges")
+  if ( length(mplusOut$results$errors)  == 0 ) {
+    rC = c(rC_ImSmIySy, 0, rep(0, length(Z1cols)+length(Z2cols)+length(Z3cols) ))
+    # Rlatent
+    Rlatent=diag(1, 1+nrow(Rc),1+ncol(Rc))
+    Rlatent[1, -1]=rC
+    Rlatent[-1,1]=rC
+    Rlatent[-1,-1]=Rc
+    colnames(Rlatent)=c('C',colnames(Rc))
+    rownames(Rlatent)=colnames(Rlatent)
+    # det(Rlatent)
+    ifrangelim = (det(Rlatent)>0)
+    
+    # COVlatent
+    COVlatent=diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))%*%Rlatent%*%diag(c(1,sqrt(diag(COVc))),nrow = 1+nrow(Rc))
+    colnames(COVlatent)=c('C',colnames(Rc))
+    rownames(COVlatent)=colnames(COVlatent)
+    # OLSb=solve(COVlatent[c('C','IM','SM','X','Z'),c('C','IM','SM','X','Z')])%*%COVlatent[c('C','IM','SM','X','Z'),c('IY','SY')]
+    # OLSxcols = which(!colnames(COVlatent)%in%c('IY','SY'))
+    OLSxcols = which(!colnames(COVlatent)%in%c('IY','SY', Z2names)) # Z2 are covariates in the models of ISM only 
+    OLSb=solve(COVlatent[OLSxcols,OLSxcols])%*%COVlatent[OLSxcols,c('IY','SY')]
+    # COVlatent[c('IY','SY'),c('IY','SY')] - COVlatent[c('IY','SY'),OLSxcols]%*%solve(COVlatent[OLSxcols,OLSxcols])%*%COVlatent[OLSxcols,c('IY','SY')]
+    mubC=OLSb[1,]
+    names(mubC)=c("bIY_C", "bSY_C")
+    
+    ## rCISm to aC
+    rCISm = rC_ImSmIySy[1:2]
+    muaC = rCISm*sd_ISM
+    
+    aCbC = c(muaC, mubC)
+    names(aCbC) = c("aIM_C",'aSM_C',"bIY_C", "bSY_C")
+    out=data.frame(t(c(aCbC, ifrangelim)))
+    colnames(out) = c("aIM_C",'aSM_C',"bIY_C", "bSY_C","if_within_admissible_ranges")
+  }
+  if ( length(mplusOut$results$errors)  > 0 ){
+    out=data.frame( error_originalmodel=c('Mplus fitting original model M0 returns errors and/or warnings.',
+                          unlist(mplusOut$results$errors), unlist(mplusOut$results$warnings) ) 
+                    )
+  }
   
   return(out)
 }
@@ -96,8 +102,15 @@ aCbC.to.rC <- function( datpreplist, aCbC=c(0.14, 0.14, 0.14, 0.14) ) {
   # det(Rlatent)
   ifrangelim = (det(Rlatent)>0)
   
-  out= c(rC_ImSmIySy, ifrangelim)
-  names(out) = c('rIM_C', 'rSM_C','rIY_C', 'rSY_C','if_within_admissible_ranges')
+  out= data.frame(t(c(rC_ImSmIySy, ifrangelim)))
+  colnames(out) = c('rIM_C', 'rSM_C','rIY_C', 'rSY_C','if_within_admissible_ranges')
+  
+  if ( length(mplusOut$results$errors)  > 0 ){
+    out=data.frame( error_originalmodel=c('Mplus fitting original model M0 returns errors and/or warnings.',
+                                          unlist(mplusOut$results$errors), unlist(mplusOut$results$warnings) ) 
+    )
+  }
+  
   return(out)
 }
 

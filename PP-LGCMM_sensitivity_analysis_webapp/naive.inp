@@ -49,7 +49,8 @@ eY5 by Y5@1;
 M1-M5@0;
 Y1-Y5@0;
 !user-specified within-person residual covariance structure;
-eM1-eM5 (sigma_eM); eY1-eY5 (sigma_eY);
+eM1-eM5 (sigma_eM);
+ eY1-eY5 (sigma_eY);
 [IM SM] (a0_IM a0_SM);
 [IY SY] (b0_IY b0_SY);
 IM on X (a1_IM);
@@ -63,10 +64,7 @@ IY (revarIY);
 SY (revarSY);
 IY with SY (IYwSY);
 IY SY with IM@0 SM@0;
-IM SM on Z;
 IY SY on Z;
-IM SM on ;
-IY SY on ;
 
 MODEL CONSTRAINT:
 NEW (detISM);
