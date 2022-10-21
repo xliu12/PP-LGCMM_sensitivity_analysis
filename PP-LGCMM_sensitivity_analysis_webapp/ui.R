@@ -2,18 +2,18 @@
 # This is the user-interface definition of a Shiny web application. You can
 # run the application by clicking 'Run App' above.
 #
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+
 
 library(shiny)
 library(shinybusy)
 
-# Define UI for application that draws a histogram
+# Define UI for application 
 shinyUI(fluidPage(
     # Application title
-    titlePanel("Sensitivity analysis of mediation inference from the parallel latent growth curve mediation model to the omission of a potential between-person pretreatment confounder of the mediator-outcome relations"), 
+    titlePanel(
+       "Sensitivity analysis of mediation inferences from the parallel process latent growth curve mediation model (PP-LGCMM)
+          to the omission of a potential pretreatment confounder of the mediator-outcome relations" 
+      ), 
     
     add_busy_spinner(spin = "fading-circle"),
     
@@ -23,38 +23,48 @@ shinyUI(fluidPage(
                       "csv file (include header) for the data frame containing variables in the model",
                       accept = c("text")
             ),
-            helpText("See an example dataset with 5 time points (and a baseline covariate Z included in both the latent mediator models and latent outcome models)", a("exampledata", href='https://osf.io/cv25h/')),
-            helpText("The illustrative values specified below are for this example datset."),
+            helpText("Please see an example dataset with 5 time points (and a baseline covariate Z included in both the latent mediator models and latent outcome models)", a("exampledata", href='https://osf.io/cv25h/')),
+            helpText("The placeholder values specified below pertain to this example dataset."),
             textAreaInput('Ycolumns', 
-                      'Column numbers for repeated measures of outcome from the first to the last time points in the input datcsv file (the column numbers should be separated by comma.)', 
+                      'Column numbers for outcome measurements from the first to the last time points in the input datcsv file
+                      (please separate the column numbers by a comma)', 
                       value = "1,2,3,4,5"
             ),
             textAreaInput('Yslope_loadings', 
-                      'Outcome slope loadings on repeated measures of the outcome from the first to the last time points (the loading values should be separated by comma.)', 
+                      'Loadings of the outcome slope on the outcome measurements from the first to the last time points 
+                      (please separate the loading values by a comma)', 
                       value = "-4,-3,-2,-1,0"
             ),
             textAreaInput('Mcolumns', 
-                      'Column numbers for repeated measures of mediator from the first to the last time points in the input datcsv file (the column numbers should be separated by comma.)', 
+                      'Column numbers for mediator measurements from the first to the last time points in the input datcsv file 
+                      (please separate the column numbers by a comma)', 
                       value = "6,7,8,9,10"
             ),
             textAreaInput('Mslope_loadings', 
-                      'Mediator slope loadings on repeated measures of the mediator from the first to the last time points (the loading values should be separated by comma).', 
+                      'Loadings of the mediator slope on the mediator measurements from the first to the last time points 
+                      (please separate the loading values by a comma)', 
                       value = "0,1,2,3,4"
             ),
             textAreaInput('Xcolumn', 
-                      'Column number corresponding to the treatment variable (time-invariant)  in the input datcsv file', 
+                      'Column number corresponding to the treatment variable in the input datcsv file', 
                       value = "11"
             ),
             textAreaInput('covariates.MYboth', 
-                      'Column numbers corresponding to the covariates (time-invariant) included in both the latent mediator models and latent outcome models  in the input datcsv file (separated by comma).', 
+                      'Column numbers in the input datcsv file corresponding to the observed pretreatment covariates included 
+                      in both the models of mediator intercept and slope and the models of outcome intercept and slope
+                      (please separate the column numbers by a comma)', 
                       value = "12"
             ),
             textAreaInput('covariates.Monly', 
-                      'Columns in the input datcsv file corresponding to the covariates (time-invariant) included in only the latent mediator models; the column numbers should be separated by comma.', 
+                      'Column numbers in the input datcsv file corresponding to the observed pretreatment covariates included 
+                      in only the models of mediator intercept and slope 
+                       (please separate the column numbers by a comma)', 
                       value = ""
             ),
             textAreaInput('covariates.Yonly', 
-                      'Columns in the input datcsv file corresponding to the covariates (time-invariant) included in only the latent outcome models; the column numbers should be separated by comma.', 
+                      'Column numbers in the input datcsv file corresponding to the observed pretreatment covariates included 
+                      in only the models of outcome intercept and slope 
+                       (please separate the column numbers by a comma)', 
                       value = ""
             ),
             textAreaInput('withinperson_residual_cov',
@@ -65,10 +75,11 @@ shinyUI(fluidPage(
                      Therefore, the specification here follows Mplus syntax.",br(),
                      "Denote the mediator's within-person residual at the t-th time point as: eMt. For example, let eM2 denote the mediator's within-person residual at the 2nd time point.", br(),
                      "Denote the outcome's within-person residual at the t-th time point as: eYt. For example, let eY2 denote the outcome's within-person residual at the 2nd time point.", br(),
-                     "In the example input shown above, there are 5 time points, and the within-person residual covariance structure are the 
+                     "In the example input shown above, there are 5 time points;
+                     the within-person residual covariance structure is the 
                      covariance structure for the vector (eM1, eM2, eM3, eM4, eM5, eY1, eY2, eY3, eY4, eY5)'. "),
             numericInput("alpha",
-                         "significance level for testing a specific indirect effect",
+                         "Significance level for testing a mediation effect",
                          min = 0,
                          value = .05)
             ##---FSA----
@@ -79,7 +90,10 @@ shinyUI(fluidPage(
             ,conditionalPanel(
                 condition="input.fixC==1",
                 textAreaInput('rCvalues', 
-                          'plausible values of the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma; these will be used as the panel names of sensitivity plots):', 
+                          'Plausible values of the confounder correlations,
+                          i.e., zero-order correlations of a potential omitted confounder with the 
+                          latent mediator intercept, mediator slope, outcome intercept, and outcome slope 
+                          (please separate the values by a comma; the specified values are to be used as the panel names of sensitivity plots):', 
                           value = "0.2,0.2,0.2,0.2" )
             )
             
@@ -91,7 +105,7 @@ shinyUI(fluidPage(
             ,conditionalPanel(
                 condition="input.hybridC==1",
                 numericInput("hybridnumK",
-                             "how many sets of confounder sensitivity parameters to draw?",
+                             "How many sets of confounder sensitivity parameters to draw?",
                              value=1000),
                 radioButtons("hybrid_whichC",
                             "Specify priors for which type of confounder sensitivity paramters?",
@@ -102,19 +116,19 @@ shinyUI(fluidPage(
                 ,conditionalPanel(
                     condition="input.hybrid_whichC=='rC'",
                     textAreaInput('MinsrC', 
-                              'minimums of the uniform priors for the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma):', 
+                              'minimums of the uniform priors for the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept, and outcome slope (separated by comma):', 
                               value = "0.2,0.2,0.2,0.2" ),
                     textAreaInput('MaxsrC', 
-                              'maximums of the uniform priors for the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma):', 
+                              'maximums of the uniform priors for the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept, and outcome slope (separated by comma):', 
                               value = "0.4,0.4,0.4,0.4" )
                 )
                 ,conditionalPanel(
                     condition="input.hybrid_whichC=='muC'",
                     textAreaInput('MeansC', 
-                              'means of the nromal priors for the confounder path coefficients to the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma):', 
+                              'means of the nromal priors for the confounder path coefficients to the latent mediator intercept, mediator slope, outcome intercept, and outcome slope (separated by comma):', 
                               value = "0.3,0.3,0.3,0.3" ),
                     textAreaInput('VarsC', 
-                              'variances of the normal priors for the confounder path coefficients to the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma):', 
+                              'variances of the normal priors for the confounder path coefficients to the latent mediator intercept, mediator slope, outcome intercept, and outcome slope (separated by comma):', 
                               value = "0.01,0.01,0.01,0.01" )
                 )
             )
@@ -185,25 +199,29 @@ IY SY with IM@0 SM@0;
                           value = FALSE),
             conditionalPanel(condition = "input.rC2aCbC==1", 
                              textAreaInput('rC_ImSmIySy', 
-                                       'Values of the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma):', 
+                                       'Values of the confounder correlations with the latent mediator intercept, mediator slope, outcome intercept, and outcome slope (separated by comma):', 
                                        value = "0.1,0.1,0.1,0.1" )
                              ),
             checkboxInput("aCbC2rC",
                           "Transform a set of confounder path coefficients to the corresponding set of confounder correlations under the sensitivity analysis model, 
                           and check whether the set of confounder path coefficients (and confounder correlations) is in the admissible ranges", 
                           value = FALSE),
-            helpText("Admissible confounder correlations (confounder path coefficients) are those with which the model-implied covariance matrix of the potential confounder C, latent intercepts and slopes of mediator and outcome, treatment variable, and observed baseline covariates under the sensitivity analysis model positive definite"),
+            helpText("Admissible confounder correlations (confounder path coefficients) are those with which 
+                     the model-implied covariance matrix of the potential omitted confounder C, latent intercepts and slopes of mediator and outcome, treatment variable, 
+                     and observed baseline covariates under the sensitivity analysis model is positive definite."),
             conditionalPanel(condition = "input.aCbC2rC==1", 
                              textAreaInput('aCbC', 
-                                       'Values of the confounder path coefficients from potential confounder C to the latent mediator intercept, mediator slope, outcome intercept and outcome slope (separated by comma):', 
+                                       'Values of the confounder path coefficients from potential confounder C to the latent mediator intercept, mediator slope, outcome intercept, and outcome slope (separated by comma):', 
                                        value = "0.14,0.14,0.14,0.14" )
             ),
             ## go----
             actionButton("update", "Go"),
-            helpText('In the Frequentist sensitivity analysis and Monte Carlo sensitivity analysis, the original model is estimated with the maximum likelihood (ML) estimator in Mplus',br(),
+            helpText(br(),'In the Frequentist sensitivity analysis and Monte Carlo sensitivity analysis, the original model is estimated with the maximum likelihood (ML) estimator in Mplus, 
+                     and the sensitivity analysis results are obtained through analytical derivation assuming ML estimation of the sensitivity analysis model.',br(),
                      'In the Bayesian sensitivity analysis, the original and sensitivity analysis models are estimated with the Bayes estimator in Mplus.', br(),
                      'Mplus is run in R via the package MplusAutomation (Hallquist & Wiley, 2018)' ),
-            helpText('References: ', br(),
+            helpText( br(), 
+                      'References: ', br(),
                      'Hallquist, M. N. & Wiley, J. F. (2018). MplusAutomation: An R Package for Facilitating Large-Scale Latent Variable Analyses in Mplus. Structural Equation Modeling, 25, 621-638. doi: 10.1080/10705511.2017.1402334.', br(),
                      'Harring, Jeffrey R., McNeish, Daniel M., and Hancock, Gregory R., Using phantom variables in structural equation modeling to assess model sensitivity to external misspecification. Psychological Methods 22, 4 (2017), pp. 616--631.'   
             ),
@@ -216,8 +234,9 @@ IY SY with IM@0 SM@0;
         mainPanel(
           h4('Diagrams of the original PP-LGCMM (Model M0) and sensitivity analysis PP-LGCMM (Model M1)'),
           img(src='fig_models0and1.png',height=400),
-          helpText('The sensitivity analysis results provide information regarding how the original mediation inferences would be altered by a potential omitted between-person confounder of the mediator-outcome relations.
-        Interpreting and gauging the robustness of original mediation inference should be based on substantive knowledge.'),
+          helpText('The sensitivity analysis results provide information regarding how the original mediation inferences would be altered by 
+          a potential omitted between-person confounder of the mediator-outcome relations (i.e., C depicted in the dashed circle of the  sensitivity analysis model diagram).
+        From the sensitivity analysis results, interpreting and gauging robustness of the original mediation inferences should be based on substantive knowledge.'),
           
           #   h4('Monte Carlo sensitivity analysis'),
           #   tableOutput('hybridCsensi'),
