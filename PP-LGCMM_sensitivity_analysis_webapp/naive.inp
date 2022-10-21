@@ -64,6 +64,7 @@ IY (revarIY);
 SY (revarSY);
 IY with SY (IYwSY);
 IY SY with IM@0 SM@0;
+IM SM on Z;
 IY SY on Z;
 
 MODEL CONSTRAINT:

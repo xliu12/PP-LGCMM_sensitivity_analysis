@@ -15,7 +15,7 @@ THIN = 5;
 CHAINS = 2;
 PROCESS = 2;
   ALGORITHM = GIBBS; 
-  BITERATIONS = 2000;
+  BITERATIONS = 20000;
 
 MODEL:
 IM by M1@1
@@ -69,6 +69,7 @@ IY (revarIY);
 SY (revarSY);
 IY with SY (IYwSY);
 IY SY with IM@0 SM@0;
+IM SM on Z;
 IY SY on Z;
 
 C by;
@@ -87,8 +88,8 @@ X_IM_SY = aIM_X*bSY_IM;
 X_SM_SY = aSM_X*bSY_SM; 
 
 MODEL PRIORS:
-aIM_C ~ N(0.39, 0.25); aSM_C ~ N(0.39, 0.25);
-bIY_C ~ N(-0.39, 0.25); bSY_C ~ N(-0.39, 0.25); 
+aIM_C ~ N(0.14, 0.04); aSM_C ~ N(0.14, 0.04);
+bIY_C ~ N(-0.14, 0.04); bSY_C ~ N(-0.14, 0.04); 
 OUTPUT:
 TECH1 TECH3 TECH4 TECH8;
 

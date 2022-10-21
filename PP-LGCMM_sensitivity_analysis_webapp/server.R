@@ -67,12 +67,12 @@ shinyServer(function(input, output) {
          Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
          within_person_residual_cov = input$withinperson_residual_cov,                 alph=input$alpha  # alpha level per effect
        )
-       if ( length(mplusOut$results$errors)  > 0 ) {
+       if ( length(datprep_list$mplusOut$results$errors)  > 0 ) {
          rC2aCbC_tab=data.frame( error_originalmodel=c('Mplus fitting original model M0 returns errors and/or warnings.',
-                                                       unlist(mplusOut$results$errors), unlist(mplusOut$results$warnings) ) 
+                                                       unlist(datprep_list$mplusOut$results$errors), unlist(datprep_list$mplusOut$results$warnings) ) 
          )
        }
-       if ( length(mplusOut$results$errors) ==0 ){
+       if ( length(datprep_list$mplusOut$results$errors) ==0 ){
          rC2aCbC_tab = rC.to.aCbC( datpreplist = datprep_list , rC_ImSmIySy = as.numeric(unlist(strsplit(input$rC_ImSmIySy,",")))  )
          
        } 
@@ -121,12 +121,12 @@ shinyServer(function(input, output) {
          Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
          within_person_residual_cov = input$withinperson_residual_cov,                 alph=input$alpha  # alpha level per effect
        )
-       if ( length(mplusOut$results$errors)  > 0 ) {
+       if ( length(datprep_list$mplusOut$results$errors)  > 0 ) {
          aCbC_rCtab=data.frame( error_originalmodel=c('Mplus fitting original model M0 returns errors and/or warnings.',
-                                                       unlist(mplusOut$results$errors), unlist(mplusOut$results$warnings) ) 
+                                                       unlist(datprep_list$mplusOut$results$errors), unlist(datprep_list$mplusOut$results$warnings) ) 
          )
        }
-       if ( length(mplusOut$results$errors)  ==0 ) {
+       if ( length(datprep_list$mplusOut$results$errors)  ==0 ) {
          aCbC_rCtab = aCbC.to.rC( datpreplist = datprep_list, aCbC = as.numeric(unlist(strsplit(input$aCbC,","))) )
          
        }
@@ -179,12 +179,12 @@ shinyServer(function(input, output) {
                 Z3cols =  as.numeric(unlist(strsplit(input$covariates.Yonly,","))), # columns for the level-2 covariates in the level-2 model of outcome only
                 within_person_residual_cov = input$withinperson_residual_cov,                 alph=input$alpha  # alpha level per effect
             )
-            if ( length(mplusOut$results$errors)  > 0 ) {
+            if ( length(datprep_list$mplusOut$results$errors)  > 0 ) {
               hybridC_sensitab=data.frame( error_originalmodel=c('Mplus fitting original model M0 returns errors and/or warnings.',
-                                                           unlist(mplusOut$results$errors), unlist(mplusOut$results$warnings) ) 
+                                                           unlist(datprep_list$mplusOut$results$errors), unlist(datprep_list$mplusOut$results$warnings) ) 
               )
             }
-            if( length(mplusOut$results$errors)  == 0 ) {
+            if( length(datprep_list$mplusOut$results$errors)  == 0 ) {
               if( input$hybrid_whichC== 'rC'){
                 #hybrid.rC
                 hybridrC_reslist=fun.hybridrC_sr(datpreplist = datprep_list,
@@ -301,7 +301,7 @@ shinyServer(function(input, output) {
     #   )
     #   if(length(datprep_list$mplusOut$results$errors) >0 ){
     #     print(c('Mplus fitting original model M0 returns errors and/or warnings.',
-    #             unlist(mplusOut$results$errors), unlist(mplusOut$results$warnings)) )
+    #             unlist(datprep_list$mplusOut$results$errors), unlist(datprep_list$mplusOut$results$warnings)) )
     #   }
     #   if( length(datprep_list$mplusOut$results$errors)==0 ){
     #     NULL 

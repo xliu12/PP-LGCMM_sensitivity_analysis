@@ -15,7 +15,7 @@ THIN = 5;
 CHAINS = 2;
 PROCESS = 2;
   ALGORITHM = GIBBS; 
-  BITERATIONS = 2000;
+  BITERATIONS = 20000;
 
 MODEL:
 IM by M1@1
@@ -69,6 +69,7 @@ IY (revarIY);
 SY (revarSY);
 IY with SY (IYwSY);
 IY SY with IM@0 SM@0;
+IM SM on Z;
 IY SY on Z;
 
 MODEL CONSTRAINT:
